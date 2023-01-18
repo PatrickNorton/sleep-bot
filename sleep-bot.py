@@ -85,7 +85,7 @@ async def on_message(message: discord.Message):
             insomniacs_role not in message.author.roles):
         return
 
-    time_zone = find_time_zone(message.author.roles)
+    time_zone = find_time_zone(message.author)
     current_date = todays_date(time_zone)
     sent_time = message.created_at.astimezone(time_zone)
     if (not is_exempt(current_date, message.author.id) and
@@ -214,11 +214,13 @@ def user_name(identity: int) -> str:
     return name or client.get_user(identity).display_name
 
 
-def find_time_zone(roles: list[discord.Role]):
+def find_time_zone(user: discord.Member):
     """Gets the user's local time zone from their role."""
-    if AT_REED:
+    with open(CONFIG/'abroad.json', 'r', encoding='utf8') as f:
+        abroad = json.load(f)
+    if AT_REED and user.id not in abroad:
         return REED_TZ
-    for role in roles:
+    for role in user.roles:
         zone = TIME_ZONE_NAMES.get(role.name)
         if zone is not None:
             return zone
@@ -325,7 +327,7 @@ async def update_message(
     with open(LOG_FILE, 'w', encoding='utf8') as log:
         data = json.load(log)
         today = data[current_date.isoformat()]
-        today[str(user.id)] = result.start_time(find_time_zone(user.roles))
+        today[str(user.id)] = result.start_time(find_time_zone(user))
         json.dump(data, log)
     with open(CONFIG/'announcements.json', 'r', encoding='utf8') as ann:
         announcements = json.load(ann)
@@ -465,6 +467,49 @@ async def list_users(interaction: discord.Interaction):
     )
 
 
+@app_commands.command(name="out_of_town")
+async def out_of_town(interaction: discord.Interaction, user: discord.Member):
+    """Sets a user as being out of town."""
+    with open(CONFIG/'abroad.json', 'w', encoding='utf8') as f:
+        data = json.load(f)
+        if user.id not in data:
+            data.append(user.id)
+            json.dump(data, f)
+    await interaction.response.send_message(
+        f"User {user.display_name} set as out of town"
+    )
+
+
+@app_commands.command(name="in_town")
+async def in_town(interaction: discord.Interaction, user: discord.Member):
+    """Removes a user from being out of town."""
+    with open(CONFIG/'abroad.json', 'w', encoding='utf8') as f:
+        data = json.load(f)
+        data.remove(user.id)
+        json.dump(data, f)
+    await interaction.response.send_message(
+        f"User {user.display_name} no longer out of town"
+    )
+
+
+@app_commands.command(name="break")
+@app_commands.choices(break_type=[
+    Choice(name="begin", value="begin"),
+    Choice(name="end", value="end"),
+])
+async def set_break(interaction: discord.Interaction, choices: Choice[str]):
+    """Toggles whether we are on break or not."""
+    at_reed = choices.value == "end"
+    with open(CONFIG/'config.toml', 'w', encoding='utf8') as f:
+        data = toml.load(f)
+        data.at_reed = at_reed
+    load_config()
+    await interaction.response.send_message(
+        "Break status set"
+    )
+
+
 if __name__ == "__main__":
+    init_files()
     load_config()
     client.run(TOKEN)
