@@ -6,7 +6,7 @@ import json
 import os
 from pathlib import Path
 import tomllib as toml
-from typing import Optional
+from typing import Any, Optional
 from zoneinfo import ZoneInfo
 
 import discord
@@ -40,6 +40,23 @@ class ServerInfo:
         self.bed_channel = bed_channel
         self.insomniacs_role = insomniacs_role
         self.patrol_role = patrol_role
+
+
+def init_files():
+    """Makes sure all relevant files exist and are properly initialized."""
+    if not (CONFIG/'config.toml').exists():
+        raise FileNotFoundError("Configuration file not found. Exiting.")
+    init_file(CONFIG/'log.json', {})
+    init_file(CONFIG/'announcements.json', {})
+    init_file(CONFIG/'users.json', {})
+    init_file(CONFIG/'abroad.json', [])
+    init_file(CONFIG/'exemptions.json', {})
+
+
+def init_file(path: Path, default: Any):
+    with open(path, 'w', encoding='utf8') as f:
+        if f.read().strip() == "":
+            json.dump(default, f)
 
 
 def load_config():
