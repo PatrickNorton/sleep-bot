@@ -534,6 +534,18 @@ async def set_break(interaction: discord.Interaction, choices: Choice[str]):
     )
 
 
+@app_commands.command(name="current_date")
+async def whats_the_date(interaction: discord.Interaction):
+    """Outputs the current date for the user that made the query."""
+    time_zone = find_time_zone(interaction.user)
+    the_date = todays_date(time_zone)
+    reed_date = todays_date(REED_TZ)
+    await interaction.response.send_message(
+        f"The current date for you is {the_date.isoformat()}\n"
+        + f"The date at Reed is {reed_date.isoformat()}"
+    )
+
+
 if __name__ == "__main__":
     init_files()
     load_config()
