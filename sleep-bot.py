@@ -375,6 +375,10 @@ def correct_result(index: int, day: date) -> Optional[Result]:
     return next((x for x in WEEKEND if x.name == weekday_result.name), None)
 
 
+def require_patrol(interaction: discord.Interaction) -> bool:
+    return interaction.user.get_role(SERVER_INFO.patrol_role) is not None
+
+
 @app_commands.command(name="snitch")
 @app_commands.choices(result=[
     Choice(name=r.name, value=i) for i, r in enumerate(RESULTS)
@@ -424,6 +428,7 @@ async def confess(interaction: discord.Interaction, result=Choice[int]):
     Choice(name="today", value="today"),
     Choice(name="tomorrow", value="tomorrow"),
 ])
+@app_commands.check(require_patrol)
 async def make_exempt(
         interaction: discord.Interaction,
         user: discord.Member,
@@ -485,6 +490,7 @@ async def list_users(interaction: discord.Interaction):
 
 
 @app_commands.command(name="out_of_town")
+@app_commands.check(require_patrol)
 async def out_of_town(interaction: discord.Interaction, user: discord.Member):
     """Sets a user as being out of town."""
     with open(CONFIG/'abroad.json', 'w', encoding='utf8') as f:
@@ -498,6 +504,7 @@ async def out_of_town(interaction: discord.Interaction, user: discord.Member):
 
 
 @app_commands.command(name="in_town")
+@app_commands.check(require_patrol)
 async def in_town(interaction: discord.Interaction, user: discord.Member):
     """Removes a user from being out of town."""
     with open(CONFIG/'abroad.json', 'w', encoding='utf8') as f:
@@ -514,6 +521,7 @@ async def in_town(interaction: discord.Interaction, user: discord.Member):
     Choice(name="begin", value="begin"),
     Choice(name="end", value="end"),
 ])
+@app_commands.check(require_patrol)
 async def set_break(interaction: discord.Interaction, choices: Choice[str]):
     """Toggles whether we are on break or not."""
     at_reed = choices.value == "end"
