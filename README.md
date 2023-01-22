@@ -12,7 +12,7 @@ I'm in, and is not designed for general use.
 ## Required Files
 
 Files are stored in a directory given by the environment variable
-`SLEEP_BOT_CONFIG` (`~/.config/sleep_bot` is a good idea). In there, several
+`SLEEP_BOT_CONFIG` (`~/.config/sleep-bot` is a good idea). In there, several
 configuration files should be created:
 
 ### `log.json`

@@ -17,7 +17,7 @@ from discord.ext import tasks
 TOKEN = None
 AT_REED = True
 CONFIG = Path(
-    os.getenv('SLEEP_BOT_CONFIG', '~/.config/sleep_bot')
+    os.getenv('SLEEP_BOT_CONFIG', '~/.config/sleep-bot')
 ).expanduser()
 
 if not CONFIG.exists():
